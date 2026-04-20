@@ -1,0 +1,123 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model task {
+  id           Int        @id @default(autoincrement())
+  title        String
+  description  String?
+  priority     String     @default("Low")
+  status       String     @default("Pending")
+  dueDate      DateTime
+  completedAt  DateTime?
+  uploads      Json?
+  comments     Json?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  employeeId   Int
+  departmentId Int
+  createdById  Int
+  createdBy    employee   @relation("CreatedTasks", fields: [createdById], references: [id])
+  department   department @relation(fields: [departmentId], references: [id])
+  employee     employee   @relation(fields: [employeeId], references: [id])
+  approvals    approval[]
+
+  @@index([createdById], map: "task_createdById_fkey")
+  @@index([departmentId], map: "task_departmentId_fkey")
+  @@index([employeeId], map: "task_employeeId_fkey")
+}
+
+model department {
+  id          Int        @id @default(autoincrement())
+  name        String
+  description String?
+  icon        String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  approval    approval[]
+  employees   employee[]
+  tasks       task[]
+}
+
+model employee {
+  id              Int               @id @default(autoincrement())
+  name            String
+  email           String            @unique
+  password        String
+  role            String
+  status          String            @default("Active")
+  image           String?
+  phone           String?
+  departmentId    Int
+  resetOtp        String?
+  otpExpire       DateTime?
+  otpVerify       Boolean           @default(false)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  approval        approval[]
+  approvalcomment approvalcomment[]
+  department      department        @relation(fields: [departmentId], references: [id])
+  createdTasks    task[]            @relation("CreatedTasks")
+  tasks           task[]
+
+  @@index([departmentId], map: "employee_departmentId_fkey")
+}
+
+model admin {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  password  String
+  phone     String
+  role      String    @default("admin")
+  otp       String?
+  otpExpire DateTime?
+  otpVerify Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  tempEmail String?
+}
+
+model approval {
+  id              Int               @id @default(autoincrement())
+  type            String
+  status          String            @default("Pending")
+  employeeId      Int
+  departmentId    Int
+  reason          String?
+  from            DateTime?
+  to              DateTime?
+  taskId          Int? // ✅ ADD THIS
+  task            task?             @relation(fields: [taskId], references: [id])
+  description     String?
+  requestTitle    String?
+  employeeComment String?
+  managerComment  String?
+  files           Json?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  department      department        @relation(fields: [departmentId], references: [id], map: "Approval_departmentId_fkey")
+  employee        employee          @relation(fields: [employeeId], references: [id], map: "Approval_employeeId_fkey")
+  approvalcomment approvalcomment[]
+
+  @@index([departmentId], map: "Approval_departmentId_fkey")
+  @@index([employeeId], map: "Approval_employeeId_fkey")
+}
+
+model approvalcomment {
+  id         Int      @id @default(autoincrement())
+  approvalId Int
+  userId     Int
+  message    String
+  role       String
+  createdAt  DateTime @default(now())
+  approval   approval @relation(fields: [approvalId], references: [id], map: "ApprovalComment_approvalId_fkey")
+  employee   employee @relation(fields: [userId], references: [id], map: "ApprovalComment_userId_fkey")
+
+  @@index([approvalId], map: "ApprovalComment_approvalId_fkey")
+  @@index([userId], map: "ApprovalComment_userId_fkey")
+}
