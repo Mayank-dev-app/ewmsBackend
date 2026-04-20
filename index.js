@@ -18,7 +18,7 @@ import employee from "./Routes/Employee/EmpTask.js"
 const app = express();
 
 app.use(cors({
-  origin: ["http://localhost:5173", ],
+  origin: ["http://localhost:5173", "https://peaceful-biscochitos-7382db.netlify.app"],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
