@@ -53,7 +53,7 @@ app.use("/api/manager", approvel);
 
 app.use("/api/employee", employee);
 
-app.listen(5000, async () => {
+app.listen(process.env.PORT || 5000, async () => {
   try {
     console.log("Server is running on port 5000");
   } catch (error) {
